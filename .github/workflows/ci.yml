@@ -22,7 +22,6 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: services/api/go.mod
-          cache-dependency-path: services/api/go.sum
       - name: Format check
         working-directory: services/api
         run: test -z "$(gofmt -l .)"
@@ -44,8 +43,6 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: apps/web/package.json
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Type check
@@ -62,7 +59,10 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK components
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.13"
