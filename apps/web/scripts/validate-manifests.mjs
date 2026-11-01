@@ -1,11 +1,14 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
-const schemaPath = "../../../schemas/watch-source-manifest.v1.schema.json";
-const examplesPath = "../../../examples";
-const schema = JSON.parse(readFileSync(new URL(schemaPath, import.meta.url), "utf8"));
+const schemaPath = fileURLToPath(
+  new URL("../../../schemas/watch-source-manifest.v1.schema.json", import.meta.url),
+);
+const examplesPath = fileURLToPath(new URL("../../../examples/", import.meta.url));
+const schema = JSON.parse(readFileSync(schemaPath, "utf8"));
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 addFormats(ajv);
 
