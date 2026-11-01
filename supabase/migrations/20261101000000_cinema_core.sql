@@ -376,6 +376,7 @@ with check (reporter_user_id = auth.uid());
 create policy content_reports_read_own on public.content_reports for select to authenticated
 using (reporter_user_id = auth.uid());
 
+grant usage on schema public to anon, authenticated, service_role;
 revoke all on all tables in schema public from anon, authenticated;
 grant select on public.titles to anon, authenticated;
 grant select on public.user_lists, public.user_list_items to anon, authenticated;

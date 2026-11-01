@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -27,8 +28,8 @@ func TestHealthEndpoints(t *testing.T) {
 			if got := recorder.Header().Get("X-Content-Type-Options"); got != "nosniff" {
 				t.Fatalf("X-Content-Type-Options = %q", got)
 			}
-			if got := recorder.Header().Get("X-Request-ID"); got == "" {
-				t.Fatal("expected X-Request-ID header")
+			if got := recorder.Header().Get("X-Request-ID"); !isValidRequestID(got) {
+				t.Fatalf("expected valid X-Request-ID header, got %q", got)
 			}
 
 			var body healthResponse
@@ -62,5 +63,32 @@ func TestHealthDoesNotAllowPost(t *testing.T) {
 
 	if recorder.Code != http.StatusMethodNotAllowed {
 		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusMethodNotAllowed)
+	}
+}
+
+func TestInvalidRequestIDIsReplaced(t *testing.T) {
+	invalidIDs := []string{
+		"short",
+		"bad value",
+		"bad\r\nX-Injected: yes",
+		strings.Repeat("a", 129),
+	}
+
+	for _, invalidID := range invalidIDs {
+		t.Run(invalidID, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+			req.Header.Set("X-Request-ID", invalidID)
+			recorder := httptest.NewRecorder()
+
+			New().ServeHTTP(recorder, req)
+
+			got := recorder.Header().Get("X-Request-ID")
+			if got == invalidID {
+				t.Fatalf("invalid request id was preserved: %q", got)
+			}
+			if !isValidRequestID(got) {
+				t.Fatalf("replacement request id is invalid: %q", got)
+			}
+		})
 	}
 }

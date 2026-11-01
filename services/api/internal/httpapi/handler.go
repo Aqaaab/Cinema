@@ -34,7 +34,7 @@ func healthHandler(w http.ResponseWriter, _ *http.Request) {
 func requestIDMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestID := r.Header.Get("X-Request-ID")
-		if requestID == "" {
+		if !isValidRequestID(requestID) {
 			requestID = newRequestID()
 		}
 		w.Header().Set("X-Request-ID", requestID)
@@ -42,10 +42,27 @@ func requestIDMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func isValidRequestID(value string) bool {
+	if len(value) < 8 || len(value) > 128 {
+		return false
+	}
+	for i := 0; i < len(value); i++ {
+		char := value[i]
+		if (char >= 'a' && char <= 'z') ||
+			(char >= 'A' && char <= 'Z') ||
+			(char >= '0' && char <= '9') ||
+			char == '-' || char == '_' || char == '.' {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
 func newRequestID() string {
 	var value [16]byte
 	if _, err := rand.Read(value[:]); err != nil {
-		return "unavailable"
+		return "request-id-unavailable"
 	}
 	return hex.EncodeToString(value[:])
 }
