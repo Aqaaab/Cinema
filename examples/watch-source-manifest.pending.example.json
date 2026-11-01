@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "manifest_id": "example.pending.demo-title",
+  "status": "pending_review",
+  "title": {
+    "canonical_id": "demo:fictional-title",
+    "type": "movie",
+    "name": "Fictional title — schema example only",
+    "release_year": 2026,
+    "external_ids": []
+  },
+  "provider": {
+    "provider_id": "example-provider",
+    "name": "Example Provider (not real)",
+    "homepage": "https://example.org",
+    "allowed_hosts": ["example.org"],
+    "terms_url": "https://example.org/terms"
+  },
+  "rights": {
+    "licensor": "Example Rights Holder (placeholder)",
+    "evidence_url": "https://example.org/rights-placeholder",
+    "license_reference": "PLACEHOLDER-NOT-A-REAL-LICENSE",
+    "valid_from": "2026-01-01T00:00:00Z",
+    "valid_until": "2027-01-01T00:00:00Z",
+    "territories": ["US"],
+    "permitted_methods": ["official_embed"],
+    "attribution": "Illustrative data only. Not authorized for playback.",
+    "downloads_allowed": false,
+    "caching_allowed": false
+  },
+  "destinations": [
+    {
+      "method": "official_embed",
+      "url": "https://example.org/demo-title",
+      "label": "Example destination (not real media)"
+    }
+  ],
+  "languages": {
+    "audio": ["en"],
+    "subtitles": ["en"]
+  },
+  "accessibility": ["captions"],
+  "review": {}
+}
