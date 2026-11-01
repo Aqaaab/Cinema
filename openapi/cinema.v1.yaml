@@ -1,0 +1,348 @@
+openapi: 3.1.0
+info:
+  title: Cinema API
+  version: 1.0.0
+  summary: Rights-aware discovery and personal library API
+  description: >-
+    Public contract for Cinema. Only the health endpoints are implemented by
+    the current starter API. Catalogue, availability, reports, and account
+    endpoints are planned and must not be treated as live until implemented.
+servers:
+  - url: https://api.example.invalid
+    description: Placeholder only; no production API is deployed.
+  - url: http://localhost:8080
+    description: Local Go API
+tags:
+  - name: Health
+    description: Implemented liveness and starter readiness endpoints.
+  - name: Catalog
+    description: Planned public title discovery.
+  - name: Availability
+    description: Planned territory-aware, rights-checked availability.
+  - name: Library
+    description: Planned authenticated personal library.
+  - name: Reports
+    description: Planned content and rights reports.
+paths:
+  /healthz:
+    get:
+      tags: [Health]
+      operationId: getLiveness
+      summary: Liveness probe
+      x-cinema-status: implemented
+      responses:
+        "200":
+          description: API process is responding.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /readyz:
+    get:
+      tags: [Health]
+      operationId: getReadiness
+      summary: Starter readiness probe
+      description: Currently mirrors liveness because no database or external dependency is connected yet.
+      x-cinema-status: implemented-placeholder
+      responses:
+        "200":
+          description: API process is responding; external dependencies are not checked yet.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /v1/health:
+    get:
+      tags: [Health]
+      operationId: getVersionedHealth
+      summary: Versioned API health
+      x-cinema-status: implemented
+      responses:
+        "200":
+          description: API process is responding.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /v1/catalog/titles:
+    get:
+      tags: [Catalog]
+      operationId: listTitles
+      summary: Search and paginate published title metadata
+      x-cinema-status: planned
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 160 }
+        - name: type
+          in: query
+          schema: { type: string, enum: [movie, series, anime, documentary, short] }
+        - name: year
+          in: query
+          schema: { type: integer, minimum: 1888, maximum: 2200 }
+        - name: language
+          in: query
+          schema: { type: string, pattern: "^[a-z]{2,3}(-[A-Z]{2})?$" }
+        - name: cursor
+          in: query
+          schema: { type: string, maxLength: 512 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+      responses:
+        "200":
+          description: A paginated list of published title metadata.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TitlePage" }
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /v1/catalog/titles/{titleId}:
+    get:
+      tags: [Catalog]
+      operationId: getTitle
+      summary: Get a title and its seasons / episodes
+      x-cinema-status: planned
+      parameters:
+        - $ref: "#/components/parameters/TitleId"
+      responses:
+        "200":
+          description: Title metadata.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Title" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /v1/catalog/titles/{titleId}/availability:
+    get:
+      tags: [Availability]
+      operationId: getTitleAvailability
+      summary: Get authorized availability for a territory
+      description: Only active grants and permitted playback methods may be returned. Unknown or expired rights fail closed.
+      x-cinema-status: planned
+      parameters:
+        - $ref: "#/components/parameters/TitleId"
+        - name: territory
+          in: query
+          required: true
+          description: ISO 3166-1 alpha-2 code selected by the user or resolved by the server.
+          schema: { type: string, pattern: "^[A-Z]{2}$" }
+      responses:
+        "200":
+          description: Authorized options, or an explicit unavailable state.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Availability" }
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /v1/me/library:
+    get:
+      tags: [Library]
+      operationId: getMyLibrary
+      summary: Read the authenticated user's library
+      x-cinema-status: planned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User-owned library entries.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/LibraryEntry" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Library]
+      operationId: addLibraryEntry
+      summary: Add a title to the user's library
+      x-cinema-status: planned
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LibraryEntryInput" }
+      responses:
+        "201":
+          description: Entry created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LibraryEntry" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /v1/me/progress/{assetId}:
+    put:
+      tags: [Library]
+      operationId: updateWatchProgress
+      summary: Update progress for an authorized asset
+      x-cinema-status: planned
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProgressInput" }
+      responses:
+        "200":
+          description: Progress updated.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Progress" }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /v1/reports/content:
+    post:
+      tags: [Reports]
+      operationId: reportContent
+      summary: Submit a metadata, source, accessibility, or rights report
+      x-cinema-status: planned
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ContentReportInput" }
+      responses:
+        "202":
+          description: Report accepted for review.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  headers:
+    RequestId:
+      description: Correlation identifier for support and diagnostics.
+      schema: { type: string, minLength: 8, maxLength: 128 }
+  parameters:
+    TitleId:
+      name: titleId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    BadRequest:
+      description: The request parameters are invalid.
+    NotFound:
+      description: The requested resource does not exist or is not visible.
+    Unauthorized:
+      description: Authentication is required or the token is invalid.
+    RateLimited:
+      description: Request rate limit exceeded.
+  schemas:
+    Health:
+      type: object
+      additionalProperties: false
+      required: [status, service]
+      properties:
+        status: { type: string, const: ok }
+        service: { type: string, const: cinema-api }
+    Title:
+      type: object
+      additionalProperties: false
+      required: [id, type, name]
+      properties:
+        id: { type: string, format: uuid }
+        type: { type: string, enum: [movie, series, anime, documentary, short] }
+        name: { type: string, minLength: 1, maxLength: 300 }
+        originalName: { type: [string, "null"], maxLength: 300 }
+        releaseYear: { type: [integer, "null"], minimum: 1888, maximum: 2200 }
+        synopsis: { type: [string, "null"], maxLength: 12000 }
+        originalLanguage: { type: [string, "null"], pattern: "^[a-z]{2,3}(-[A-Z]{2})?$" }
+    TitlePage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Title" }
+        nextCursor: { type: [string, "null"] }
+    Availability:
+      type: object
+      additionalProperties: false
+      required: [titleId, territory, state, options]
+      properties:
+        titleId: { type: string, format: uuid }
+        territory: { type: string, pattern: "^[A-Z]{2}$" }
+        state: { type: string, enum: [verified_free, official_provider, unavailable, rights_review] }
+        options:
+          type: array
+          items:
+            type: object
+            required: [providerName, method, destination]
+            properties:
+              providerName: { type: string }
+              method: { type: string, enum: [official_embed, direct_playback] }
+              destination: { type: string, format: uri, pattern: "^https://" }
+              languages: { type: array, items: { type: string } }
+              subtitles: { type: array, items: { type: string } }
+              checkedAt: { type: string, format: date-time }
+    LibraryEntryInput:
+      type: object
+      additionalProperties: false
+      required: [titleId, entryType]
+      properties:
+        titleId: { type: string, format: uuid }
+        entryType: { type: string, enum: [watchlist, favorite, watched] }
+    LibraryEntry:
+      allOf:
+        - $ref: "#/components/schemas/LibraryEntryInput"
+        - type: object
+          required: [createdAt]
+          properties:
+            createdAt: { type: string, format: date-time }
+    ProgressInput:
+      type: object
+      additionalProperties: false
+      required: [positionMs]
+      properties:
+        positionMs: { type: integer, minimum: 0 }
+        durationMs: { type: [integer, "null"], minimum: 1 }
+    Progress:
+      allOf:
+        - $ref: "#/components/schemas/ProgressInput"
+        - type: object
+          required: [updatedAt]
+          properties:
+            updatedAt: { type: string, format: date-time }
+    ContentReportInput:
+      type: object
+      additionalProperties: false
+      required: [reportType, description]
+      properties:
+        titleId: { type: [string, "null"], format: uuid }
+        providerId: { type: [string, "null"], format: uuid }
+        territory: { type: [string, "null"], pattern: "^[A-Z]{2}$" }
+        reportType: { type: string, enum: [rights, incorrect_metadata, broken_source, subtitle, accessibility, safety, other] }
+        description: { type: string, minLength: 10, maxLength: 4000 }
