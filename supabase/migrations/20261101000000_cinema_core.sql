@@ -45,7 +45,7 @@ create table public.seasons (
 );
 
 create or replace function public.cinema_check_series_title()
-returns trigger language plpgsql set search_path = public as $
+returns trigger language plpgsql set search_path = public as $$
 declare
   parent_type text;
 begin
@@ -55,7 +55,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 create trigger seasons_series_guard
 before insert or update of series_title_id on public.seasons
@@ -73,7 +73,7 @@ create table public.episodes (
 );
 
 create or replace function public.cinema_check_episode_title()
-returns trigger language plpgsql set search_path = public as $
+returns trigger language plpgsql set search_path = public as $$
 declare
   episode_type text;
 begin
@@ -83,7 +83,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 create trigger episodes_title_guard
 before insert or update of episode_title_id on public.episodes
