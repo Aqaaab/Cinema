@@ -53,6 +53,20 @@ jobs:
       - name: Production build
         run: npm run build
 
+  openapi:
+    name: OpenAPI · Contract lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22.13.0"
+      - name: Validate OpenAPI contract
+        run: npx --yes @redocly/cli@2.72.1 lint --extends=spec openapi/cinema.v1.yaml
+        env:
+          REDOCLY_TELEMETRY: "off"
+          REDOCLY_SUPPRESS_NOTIFICATIONS: "true"
+
   android:
     name: Android · Debug build
     runs-on: ubuntu-latest
