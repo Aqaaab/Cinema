@@ -62,7 +62,12 @@ jobs:
       - uses: android-actions/setup-android@v3
         with:
           tools: ""
-          packages: "platform-tools,platforms;android-36,build-tools;36.0.0"
+          packages: ""
+      - name: Install Android SDK components
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          yes | "$SDKMANAGER" --licenses >/dev/null
+          "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.13"
