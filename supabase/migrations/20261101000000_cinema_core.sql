@@ -393,4 +393,11 @@ revoke all on function public.cinema_check_destination_host() from public, anon,
 revoke all on function public.cinema_check_series_title() from public, anon, authenticated;
 revoke all on function public.cinema_check_episode_title() from public, anon, authenticated;
 
+grant execute on function public.cinema_valid_code_array(text[], text) to service_role;
+grant execute on function public.cinema_set_updated_at() to authenticated, service_role;
+grant execute on function public.cinema_check_asset_rights() to service_role;
+grant execute on function public.cinema_check_destination_host() to service_role;
+grant execute on function public.cinema_check_series_title() to service_role;
+grant execute on function public.cinema_check_episode_title() to service_role;
+
 commit;
