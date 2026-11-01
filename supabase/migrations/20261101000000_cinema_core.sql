@@ -192,7 +192,7 @@ create table public.media_destinations (
   id uuid primary key default gen_random_uuid(),
   asset_id uuid not null references public.media_assets(id) on delete cascade,
   destination_url text not null check (destination_url ~ '^https://'),
-  destination_host text not null check (destination_host = lower(destination_host) and length(destination_host) between 1 and 253)
+  destination_host text not null check (destination_host = lower(destination_host) and length(destination_host) between 1 and 253),
   label text check (label is null or length(label) <= 100),
   priority smallint not null default 100 check (priority between 0 and 1000),
   destination_status text not null default 'pending_review' check (destination_status in ('pending_review', 'active', 'disabled', 'removed')),
