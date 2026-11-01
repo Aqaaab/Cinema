@@ -3,8 +3,8 @@ import { join, relative } from "node:path";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 
-const schemaPath = "../../schemas/watch-source-manifest.v1.schema.json";
-const examplesPath = "../../examples";
+const schemaPath = "../../../schemas/watch-source-manifest.v1.schema.json";
+const examplesPath = "../../../examples";
 const schema = JSON.parse(readFileSync(new URL(schemaPath, import.meta.url), "utf8"));
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 addFormats(ajv);
