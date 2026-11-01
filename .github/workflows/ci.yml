@@ -80,3 +80,19 @@ jobs:
       - name: Build debug APK
         working-directory: apps/android
         run: gradle :app:assembleDebug --no-daemon
+      - name: Verify APK and compute checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="apps/android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$apk"
+          sha256sum "$apk" > "$apk.sha256"
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: cinema-debug-apk-${{ github.sha }}
+          path: |
+            apps/android/app/build/outputs/apk/debug/app-debug.apk
+            apps/android/app/build/outputs/apk/debug/app-debug.apk.sha256
+          if-no-files-found: error
+          retention-days: 14
