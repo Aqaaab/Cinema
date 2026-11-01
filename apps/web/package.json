@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "validate:manifests": "node scripts/validate-manifests.mjs"
   },
   "dependencies": {
     "next": "16.4.3",
@@ -17,6 +18,8 @@
     "@types/node": "^22.15.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1",
     "typescript": "^5.9.3"
   }
 }
