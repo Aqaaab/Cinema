@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "foundation/**"]
   pull_request:
   workflow_dispatch:
 
@@ -44,6 +44,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package.json
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Type check
@@ -59,11 +61,11 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: "17"
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "9.3.1"
+          gradle-version: "8.13"
       - name: Build debug APK
         working-directory: apps/android
         run: gradle :app:assembleDebug --no-daemon
